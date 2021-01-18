@@ -62,5 +62,58 @@ namespace RestaurantRater.Controllers
 
             return NotFound();
         }
+
+        //PUT (update)
+        //api/Restaurant/{id}
+        [HttpPut]
+        public async Task<IHttpActionResult> UpdateRestaurant([FromUri] int id, [FromBody] Restaurant updatedRestaurant)
+        {
+            //Check to see if IDs match
+            if (id != updatedRestaurant?.Id)
+            {
+                return BadRequest("Ids do not match.");
+            }
+
+            //Check the ModelState
+            if (!ModelState.IsValid)  // if model state is invalid
+                return BadRequest(ModelState);
+
+            //Find the restaurant in the database
+            Restaurant restaurant = await _context.Restaurants.FindAsync(id);
+
+            //If the restaurant doesn't exist then do something
+            if (restaurant is null)
+                return NotFound();
+
+            //Update the properties
+            restaurant.Name = updatedRestaurant.Name;
+            restaurant.Address = updatedRestaurant.Address;
+
+            //Save changes
+            await _context.SaveChangesAsync();
+
+            return Ok("The restaurant was updated!");
+        }
+
+        //DELETE
+        //api/Restaurant/{id}
+        [HttpDelete]
+        public async Task<IHttpActionResult> DeleteRestaurant([FromUri] int id)
+        {
+            Restaurant restaurant = await _context.Restaurants.FindAsync(id);
+
+            if (restaurant is null)
+                return NotFound();
+
+            _context.Restaurants.Remove(restaurant);
+
+            if (await _context.SaveChangesAsync() == 1)
+            {
+                return Ok("The restaurant was deleted.");
+            }
+
+            return InternalServerError();
+        }
+
     }
 }
